@@ -1,5 +1,6 @@
 const express = require('express');
 const axios = require('axios');
+const puppeteer = require('puppeteer');
 const config = require('./config/index');
 
 const app = express()
@@ -43,6 +44,27 @@ apiRoutes.get('/lyric', (req, res) => {
 	}).catch(e => {
 		console.log(e);
 	});
+});
+
+apiRoutes.get('/song/:songid', async (req, res) => {
+	const devices = require('puppeteer/DeviceDescriptors');
+	const iPhone = devices['iPhone 6'];
+	const songid = req.params.songid;
+
+	const browser = await puppeteer.launch();
+	const page = await browser.newPage();
+	await page.emulate(iPhone);
+	page.on('request', async request => {
+		if (/\.m4a/.test(request.url())) {
+			res.json({
+				retcode: 0,
+				songid,
+				resource: request.url()
+			});
+		}
+	});
+	await page.goto(`https://i.y.qq.com/v8/playsong.html?songmid=${songid}`);
+	await browser.close();
 });
 
 apiRoutes.get('/getSongList', (req, res) => {
