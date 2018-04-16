@@ -12,6 +12,7 @@ var webpack = require('webpack')
 var proxyMiddleware = require('http-proxy-middleware')
 var webpackConfig = require('./webpack.dev.conf')
 var axios = require('axios')
+var puppeteer = require('puppeteer')
 
 // default port where dev server listens for incoming traffic
 var port = process.env.PORT || config.dev.port
@@ -41,7 +42,7 @@ apiRoutes.get('/getDiscList', (req, res) => {
 });
 
 apiRoutes.get('/lyric', (req, res) => {
-	var url = 'https://c.y.qq.com/lyric/fcgi-bin/fcg_query_lyric_new.fcg';
+	var url = 'https://c.y.qq.com/lyric/fcgi-bin/fcg_query_lyric.fcg';
 
 	axios.get(url, {
 		headers: {
@@ -64,6 +65,27 @@ apiRoutes.get('/lyric', (req, res) => {
 	});
 });
 
+apiRoutes.get('/song/:songid', async (req, res) => {
+	var devices = require('puppeteer/DeviceDescriptors');
+	var iPhone = devices['iPhone 6'];
+	var songid = req.params.songid;
+
+	var browser = await puppeteer.launch();
+	var page = await browser.newPage();
+	await page.emulate(iPhone);
+	page.on('request', async request => {
+		if (/\.m4a/.test(request.url())) {
+			res.json({
+				retcode: 0,
+				songid,
+				resource: request.url()
+			});
+		}
+	});
+	await page.goto(`https://i.y.qq.com/v8/playsong.html?songmid=${songid}`);
+	await browser.close();
+});
+
 apiRoutes.get('/getSongList', (req, res) => {
 	var url = 'https://c.y.qq.com/qzone/fcg-bin/fcg_ucc_getcdinfo_byids_cp.fcg';
 
@@ -79,6 +101,7 @@ apiRoutes.get('/getSongList', (req, res) => {
 		console.log(e);
 	});
 });
+
 app.use('/api', apiRoutes)
 
 var compiler = webpack(webpackConfig)
@@ -93,18 +116,20 @@ var hotMiddleware = require('webpack-hot-middleware')(compiler, {
 	heartbeat: 2000
 })
 // force page reload when html-webpack-plugin template changes
-compiler.plugin('compilation', function (compilation) {
-	compilation.plugin('html-webpack-plugin-after-emit', function (data, cb) {
-		hotMiddleware.publish({ action: 'reload' })
+compiler.plugin('compilation', function(compilation) {
+	compilation.plugin('html-webpack-plugin-after-emit', function(data, cb) {
+		hotMiddleware.publish({action: 'reload'})
 		cb()
 	})
 })
 
 // proxy api requests
-Object.keys(proxyTable).forEach(function (context) {
+Object.keys(proxyTable).forEach(function(context) {
 	var options = proxyTable[context]
 	if (typeof options === 'string') {
-		options = { target: options }
+		options = {
+			target: options
+		}
 	}
 	app.use(proxyMiddleware(options.filter || context, options))
 })

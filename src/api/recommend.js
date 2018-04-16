@@ -20,10 +20,12 @@ export function getDiscList () {
 	const data = Object.assign({}, commonParams, {
 		platform: 'yqq',
 		hostUin: 0,
-		sin: 1,
+		sin: 0,
 		ein: 29,
+		notice: 0,
 		sortId: 5,
 		needNewCode: 0,
+		g_tk: 489753805,
 		categoryId: 10000000,
 		rnd: Math.random(),
 		format: 'json'

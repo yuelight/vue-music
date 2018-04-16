@@ -257,6 +257,10 @@
 			},
 			ready() {
 				this.songReady = true;
+				this.currentSong.getSong()
+					.then(url => {
+						this.setSongSource(url);
+					});
 				this.savePlayHistory(this.currentSong);
 			},
 			error() {
@@ -283,7 +287,7 @@
 			},
 			getLyric() {
 				this.currentSong.getLyric().then(lyric => {
-					if (this.currentLyric.lyric !== lyric) {
+					if (this.currentLyric && this.currentLyric.lyric === lyric) {
 						return;
 					}
 					this.currentLyric = new Lyric(lyric, this.handleLyric);
@@ -382,7 +386,8 @@
 				return { x, y, scale };
 			},
 			...mapMutations({
-				setFullScreen: 'SET_FULL_SCREEN'
+				setFullScreen: 'SET_FULL_SCREEN',
+				setSongSource: 'SET_SONG_SOURCE'
 			}),
 			...mapActions([
 				'savePlayHistory'

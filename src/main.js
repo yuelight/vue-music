@@ -5,10 +5,10 @@ import router from './router'
 import store from './store'
 import fastclick from 'fastclick'
 import VueLazyLoad from 'vue-lazyload'
-import VConsole from 'vconsole'
+// import VConsole from 'vconsole'
 
 /* eslint-disable no-unused-vars */
-const vConsole = new VConsole()
+// const vConsole = new VConsole()
 
 console.log('test')
 
